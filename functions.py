@@ -12,19 +12,20 @@ def parse_message(message_content):
     if msg_a[0] == "!cg":
         if msg_a[1] == "price":
             if len(msg_a) == 4:
-                return(check_price(msg_a[2],msg_a[3]))
+                return(price_message(msg_a[2],msg_a[3]))
             else:
                 return("Wrong format!\nTry !cg price coin1 coin2")
         elif msg_a[1] == "setalert":
             print('u selected setalert')
+        # elif msg_a[1] == "list":
+        #     return(list_message())
 
-def check_price(m1,m2):
+def get_price(m1,m2):
     url = api_url+"/coins/{}".format(m1)
     r = requests.get(url)
     if r:
         price = r.json()['market_data']['current_price'][m2]
-        msg = "1 {}".format(m1)+" = {}".format(price)+" {}".format(m2)
-        return(msg)
+        return(price)
     else:
         url = api_url+"/coins/list"
         r = requests.get(url)
@@ -35,10 +36,36 @@ def check_price(m1,m2):
                     url = api_url+"/coins/{}".format(m1)
                     r = requests.get(url)
                     if r:
-                        price = r.json()['market_data']['current_price'][m2]
-                        msg = "1 {}".format(m1)+" = {}".format(price)+" {}".format(m2)
-                        return(msg)
+                        try:
+                            print(r.json()['market_data']['current_price'][m2])
+                            return(r.json()['market_data']['current_price'][m2])
+                        except KeyError as e:
+                            pass
 
+def price_message(m1,m2):
+    price = get_price(m1,m2)
+    if price:
+        if price >= 0:
+            return("{}".format(m1.upper())+"/{}".format(m2.upper())+" - {}".format(price))
+        else:
+            return("Market not found, please try again.")
+    else:
+        return("Market not found, please try again.")
+
+# def list_message():
+#     url = api_url+"/coins/list"
+#     r = requests.get(url)
+#     message = "Available coins:\n"
+#     if r:
+#         for i in r.json():
+#             message = message + i['name'] + ", "
+#         return(message)
+
+# def set_alert(m1,m2,price):
+#     url = api_url+"/coins/{}".format(m1)
+#     r = requests.get(url)
+#     if r:
+#         price = r
 
 def main(TOKEN):
     @client.event
